@@ -1,8 +1,9 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
-import { DatabaseManager } from '../db/connection';
+import { ConnectionRegistry } from '../db/registry';
 import { introspectSchema } from '../schema/introspector';
 import { schemaToMarkdown, schemaToAgentMarkdown } from '../schema/markdown';
 import { truncateText } from '../utils/format';
+import { requireConnection } from '../utils/require-connection';
 
 export const schemaCommand = {
   data: new SlashCommandBuilder()
@@ -27,12 +28,15 @@ export const schemaCommand = {
 
   async execute(
     interaction: ChatInputCommandInteraction,
-    db: DatabaseManager
+    registry: ConnectionRegistry
   ): Promise<void> {
     const tableFilter = interaction.options.getString('table') ?? undefined;
     const format = interaction.options.getString('format') ?? 'human';
 
     await interaction.deferReply();
+
+    const db = await requireConnection(interaction, registry);
+    if (!db) return;
 
     try {
       const schema = await db.withClient(introspectSchema);

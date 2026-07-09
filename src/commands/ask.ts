@@ -1,9 +1,10 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
-import { DatabaseManager } from '../db/connection';
+import { ConnectionRegistry } from '../db/registry';
 import { interpretNaturalLanguage } from '../nlp/interpreter';
 import { introspectSchema } from '../schema/introspector';
 import { QueryRejectedError } from '../safety/query-filter';
 import { formatQueryResult, truncateText } from '../utils/format';
+import { requireConnection } from '../utils/require-connection';
 
 export const askCommand = {
   data: new SlashCommandBuilder()
@@ -20,10 +21,13 @@ export const askCommand = {
 
   async execute(
     interaction: ChatInputCommandInteraction,
-    db: DatabaseManager
+    registry: ConnectionRegistry
   ): Promise<void> {
     const question = interaction.options.getString('question', true);
     await interaction.deferReply();
+
+    const db = await requireConnection(interaction, registry);
+    if (!db) return;
 
     try {
       const schema = await db.withClient(introspectSchema);

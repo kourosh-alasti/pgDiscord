@@ -1,11 +1,8 @@
-import {
-  ChatInputCommandInteraction,
-  SlashCommandBuilder,
-  AttachmentBuilder,
-} from 'discord.js';
-import { DatabaseManager } from '../db/connection';
+import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
+import { ConnectionRegistry } from '../db/registry';
 import { QueryRejectedError } from '../safety/query-filter';
 import { formatQueryResult, truncateText } from '../utils/format';
+import { requireConnection } from '../utils/require-connection';
 
 export const queryCommand = {
   data: new SlashCommandBuilder()
@@ -20,10 +17,13 @@ export const queryCommand = {
 
   async execute(
     interaction: ChatInputCommandInteraction,
-    db: DatabaseManager
+    registry: ConnectionRegistry
   ): Promise<void> {
     const sql = interaction.options.getString('sql', true);
     await interaction.deferReply();
+
+    const db = await requireConnection(interaction, registry);
+    if (!db) return;
 
     try {
       const start = Date.now();

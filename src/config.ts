@@ -1,6 +1,6 @@
 export interface BotConfig {
   discordToken: string;
-  databaseUrl: string;
+  databaseUrl?: string;
   inactivityTimeoutMinutes: number;
   guildId?: string;
 }
@@ -42,15 +42,9 @@ export function loadConfig(argv: string[] = process.argv.slice(2)): BotConfig {
     );
   }
 
-  if (!databaseUrl) {
-    throw new Error(
-      'Database URL required. Set DATABASE_URL or pass --database-url'
-    );
-  }
-
   return {
     discordToken,
-    databaseUrl,
+    databaseUrl: databaseUrl || undefined,
     inactivityTimeoutMinutes,
     guildId: guildId || undefined,
   };

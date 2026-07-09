@@ -9,7 +9,8 @@ A Discord bot that provides a **safe, read-only access layer** to PostgreSQL dat
 - **Natural language queries** — `/ask` converts plain English to read-only SQL using schema context
 - **Schema documentation** — `/schema` outputs human markdown tables or agent-friendly YAML
 - **Schema diagrams** — `/diagram` generates Mermaid ER diagrams or ASCII visuals
-- **Hidden credentials** — connection string is passed at startup, never shown in Discord
+- **Per-user connections** — `/connect` lets each user link their own database (multi-tenant hosting)
+- **Hidden credentials** — connection strings entered via private modal; never shown in channel
 - **Inactivity timeout** — auto-disconnects after configurable idle period; `/reconnect` restores access
 - **Connection status** — `/status` shows health without exposing secrets
 
@@ -32,16 +33,22 @@ Edit `.env`:
 
 ```env
 DISCORD_TOKEN=your_bot_token
-DATABASE_URL=postgresql://user:password@host:5432/dbname
 INACTIVITY_TIMEOUT_MINUTES=30
 ```
 
-Or pass credentials via CLI (recommended for hiding from process listings in shared environments):
+For **multi-tenant hosting** (recommended), only set `DISCORD_TOKEN` — each user connects their own database via `/connect`.
+
+For **single-tenant** deployments, you can optionally set a default database:
+
+```env
+DATABASE_URL=postgresql://user:password@host:5432/dbname
+```
+
+Or pass credentials via CLI:
 
 ```bash
 npm run dev -- \
   --discord-token "YOUR_TOKEN" \
-  --database-url "postgresql://user:pass@localhost:5432/mydb" \
   --inactivity-timeout 30
 ```
 
@@ -63,13 +70,26 @@ npm run dev
 
 | Command | Description |
 |---------|-------------|
+| `/connect [url]` | Connect to PostgreSQL (private modal if url omitted) |
+| `/disconnect` | End session and clear credentials from memory |
 | `/query sql:<SQL>` | Execute read-only SQL |
 | `/ask question:<text>` | Natural language → SQL |
 | `/schema [table] [format]` | Schema as markdown or agent YAML |
 | `/diagram [table] [format]` | Mermaid ER or ASCII diagram |
-| `/status` | Connection status (no credentials) |
+| `/status` | Your connection status (ephemeral, no credentials) |
 | `/reconnect` | Reconnect after timeout |
 | `/help` | Commands and safety policy |
+
+### Connecting to your database
+
+Run `/connect` **without** the url option to open a **private modal** — your connection string is only visible to you and is never posted in the channel.
+
+```
+/connect          → opens private modal (recommended in shared servers)
+/connect url:...  → works but url is visible in channel (use for automation only)
+```
+
+After connecting, use `/query`, `/ask`, `/schema`, and `/diagram` as normal. Sessions auto-disconnect after inactivity; use `/reconnect` or `/connect` again.
 
 ### Example NLP queries (`/ask`)
 
@@ -104,7 +124,9 @@ src/
 ├── bot.ts                # Discord client & command routing
 ├── config.ts             # CLI / env configuration
 ├── commands/             # Slash command handlers
-├── db/connection.ts      # Pool manager with inactivity timeout
+├── db/
+│   ├── connection.ts      # Pool manager with inactivity timeout
+│   └── registry.ts        # Per-user connection sessions
 ├── safety/query-filter.ts # AST-based read-only enforcement
 ├── nlp/interpreter.ts    # Natural language → SQL
 └── schema/               # Introspection, markdown, diagrams
@@ -124,8 +146,8 @@ Use these endpoints for structured database access:
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `DISCORD_TOKEN` | Yes | — | Discord bot token |
-| `DATABASE_URL` | Yes | — | PostgreSQL connection string |
-| `INACTIVITY_TIMEOUT_MINUTES` | No | `30` | Idle disconnect timeout |
+| `DATABASE_URL` | No | — | Optional default DB for single-tenant mode |
+| `INACTIVITY_TIMEOUT_MINUTES` | No | `30` | Idle disconnect timeout per user session |
 | `DISCORD_GUILD_ID` | No | — | Guild ID for faster dev command registration |
 
 ## License

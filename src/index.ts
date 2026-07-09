@@ -1,28 +1,31 @@
 import 'dotenv/config';
 import { loadConfig } from './config';
-import { DatabaseManager } from './db/connection';
+import { ConnectionRegistry } from './db/registry';
 import { createBot, registerSlashCommands } from './bot';
 
 async function main(): Promise<void> {
   const config = loadConfig();
 
-  const db = new DatabaseManager({
-    connectionString: config.databaseUrl,
-    inactivityTimeoutMs: config.inactivityTimeoutMinutes * 60 * 1000,
-  });
+  const registry = new ConnectionRegistry(
+    config.inactivityTimeoutMinutes * 60 * 1000
+  );
 
-  console.log('Connecting to database...');
-  await db.connect();
-  console.log(`Connected to: ${db.getStatus().databaseName}`);
+  if (config.databaseUrl) {
+    console.log(
+      'Default DATABASE_URL is set — users can still override with /connect.'
+    );
+  } else {
+    console.log('No default database — users connect via /connect.');
+  }
 
   await registerSlashCommands(config);
 
-  const client = createBot(config, db);
+  const client = createBot(config, registry);
   await client.login(config.discordToken);
 
   const shutdown = async () => {
     console.log('Shutting down...');
-    await db.disconnect();
+    await registry.disconnectAll();
     client.destroy();
     process.exit(0);
   };

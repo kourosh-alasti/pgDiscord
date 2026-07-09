@@ -3,10 +3,11 @@ import {
   SlashCommandBuilder,
   AttachmentBuilder,
 } from 'discord.js';
-import { DatabaseManager } from '../db/connection';
+import { ConnectionRegistry } from '../db/registry';
 import { introspectSchema } from '../schema/introspector';
 import { schemaToMermaid, schemaToAsciiDiagram } from '../schema/diagram';
 import { truncateText } from '../utils/format';
+import { requireConnection } from '../utils/require-connection';
 
 export const diagramCommand = {
   data: new SlashCommandBuilder()
@@ -31,12 +32,15 @@ export const diagramCommand = {
 
   async execute(
     interaction: ChatInputCommandInteraction,
-    db: DatabaseManager
+    registry: ConnectionRegistry
   ): Promise<void> {
     const tableFilter = interaction.options.getString('table') ?? undefined;
     const format = interaction.options.getString('format') ?? 'mermaid';
 
     await interaction.deferReply();
+
+    const db = await requireConnection(interaction, registry);
+    if (!db) return;
 
     try {
       const schema = await db.withClient(introspectSchema);
