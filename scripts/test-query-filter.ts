@@ -11,6 +11,8 @@ const allowed = [
   'EXPLAIN SELECT * FROM users',
   'SHOW timezone',
   'VALUES (1, 2), (3, 4)',
+  'SELECT 1 UNION SELECT 2',
+  'SELECT 1 UNION ALL SELECT 2',
 ];
 
 const blocked = [
@@ -25,6 +27,7 @@ const blocked = [
   'SELECT * FROM users FOR UPDATE',
   'SELECT * INTO temp_table FROM users',
   'EXPLAIN DELETE FROM users',
+  'SHOW timezone; DELETE FROM users',
   'COPY users TO \'/tmp/out.csv\'',
   'WITH cte AS (DELETE FROM users RETURNING *) SELECT 1',
 ];

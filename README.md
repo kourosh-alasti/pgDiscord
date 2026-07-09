@@ -49,6 +49,7 @@ Or pass credentials via CLI:
 ```bash
 npm run dev -- \
   --discord-token "YOUR_TOKEN" \
+  --database-url "postgresql://user:pass@host:5432/mydb" \
   --inactivity-timeout 30
 ```
 

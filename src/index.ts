@@ -23,15 +23,23 @@ async function main(): Promise<void> {
   const client = createBot(config, registry);
   await client.login(config.discordToken);
 
-  const shutdown = async () => {
-    console.log('Shutting down...');
-    await registry.disconnectAll();
-    client.destroy();
+  let shuttingDown = false;
+  const shutdown = async (signal: string) => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    console.log(`Shutting down (${signal})...`);
+    try {
+      await registry.disconnectAll();
+      client.destroy();
+    } catch (err) {
+      console.error('Shutdown cleanup failed:', err);
+      process.exit(1);
+    }
     process.exit(0);
   };
 
-  process.on('SIGINT', shutdown);
-  process.on('SIGTERM', shutdown);
+  process.on('SIGINT', () => void shutdown('SIGINT'));
+  process.on('SIGTERM', () => void shutdown('SIGTERM'));
 }
 
 main().catch((err) => {

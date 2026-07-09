@@ -28,13 +28,19 @@ export function loadConfig(argv: string[] = process.argv.slice(2)): BotConfig {
 
   const discordToken = args['discord-token'] || process.env.DISCORD_TOKEN;
   const databaseUrl = args['database-url'] || process.env.DATABASE_URL;
-  const inactivityTimeoutMinutes = parseInt(
+  const guildId = args['guild-id'] || process.env.DISCORD_GUILD_ID;
+
+  const DEFAULT_INACTIVITY_TIMEOUT_MINUTES = 30;
+  const parsedTimeout = parseInt(
     args['inactivity-timeout'] ||
       process.env.INACTIVITY_TIMEOUT_MINUTES ||
-      '30',
+      String(DEFAULT_INACTIVITY_TIMEOUT_MINUTES),
     10
   );
-  const guildId = args['guild-id'] || process.env.DISCORD_GUILD_ID;
+  const inactivityTimeoutMinutes =
+    Number.isFinite(parsedTimeout) && parsedTimeout > 0
+      ? parsedTimeout
+      : DEFAULT_INACTIVITY_TIMEOUT_MINUTES;
 
   if (!discordToken) {
     throw new Error(

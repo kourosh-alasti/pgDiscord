@@ -158,6 +158,11 @@ function validateBindable(stmt: BindableStatement): void {
     return;
   }
 
+  if (type === 'union' || type === 'union all') {
+    validateUnionStatement(stmt);
+    return;
+  }
+
   if (!ALLOWED_STATEMENT_TYPES.has(type)) {
     throw new QueryRejectedError(
       `Statement type not permitted: ${type}`,
@@ -187,6 +192,15 @@ function validateWithStatement(stmt: BindableStatement): void {
   validateBindable(recursiveStmt.in);
 }
 
+function validateUnionStatement(stmt: BindableStatement): void {
+  const unionStmt = stmt as {
+    left: BindableStatement;
+    right: BindableStatement;
+  };
+  validateBindable(unionStmt.left);
+  validateBindable(unionStmt.right);
+}
+
 function validateStatement(stmt: Statement): void {
   validateBindable(stmt as BindableStatement);
 }
@@ -214,10 +228,6 @@ export function validateReadOnlyQuery(sql: string): void {
   const explainMatch = trimmed.match(/^\s*EXPLAIN\b(?:\s+\(.*?\))?\s+([\s\S]+)/i);
   if (explainMatch) {
     validateReadOnlyQuery(explainMatch[1]);
-    return;
-  }
-
-  if (/^\s*SHOW\b/i.test(trimmed)) {
     return;
   }
 

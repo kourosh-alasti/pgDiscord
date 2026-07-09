@@ -71,6 +71,7 @@ export async function introspectSchema(client: PoolClient): Promise<SchemaInfo> 
       AND tc.table_schema = kcu.table_schema
     WHERE tc.constraint_type = 'PRIMARY KEY'
       AND tc.table_schema NOT IN ('pg_catalog', 'information_schema')
+    ORDER BY tc.table_schema, tc.table_name, kcu.ordinal_position
   `);
 
   const fkResult = await client.query<{
@@ -84,8 +85,8 @@ export async function introspectSchema(client: PoolClient): Promise<SchemaInfo> 
   }>(`
     SELECT
       tc.constraint_name,
-      tc.table_schema AS source_schema,
-      tc.table_name AS source_table,
+      kcu.table_schema AS source_schema,
+      kcu.table_name AS source_table,
       kcu.column_name AS source_column,
       ccu.table_schema AS target_schema,
       ccu.table_name AS target_table,
@@ -94,11 +95,23 @@ export async function introspectSchema(client: PoolClient): Promise<SchemaInfo> 
     JOIN information_schema.key_column_usage kcu
       ON tc.constraint_name = kcu.constraint_name
       AND tc.table_schema = kcu.table_schema
-    JOIN information_schema.constraint_column_usage ccu
-      ON ccu.constraint_name = tc.constraint_name
-      AND ccu.table_schema = tc.table_schema
+      AND tc.constraint_catalog = kcu.constraint_catalog
+    JOIN information_schema.referential_constraints rc
+      ON tc.constraint_name = rc.constraint_name
+      AND tc.table_schema = rc.constraint_schema
+      AND tc.constraint_catalog = rc.constraint_catalog
+    JOIN information_schema.key_column_usage ccu
+      ON rc.unique_constraint_name = ccu.constraint_name
+      AND rc.unique_constraint_schema = ccu.constraint_schema
+      AND rc.unique_constraint_catalog = ccu.constraint_catalog
+      AND kcu.ordinal_position = ccu.ordinal_position
     WHERE tc.constraint_type = 'FOREIGN KEY'
       AND tc.table_schema NOT IN ('pg_catalog', 'information_schema')
+    ORDER BY
+      kcu.table_schema,
+      kcu.table_name,
+      tc.constraint_name,
+      kcu.ordinal_position
   `);
 
   const pkSet = new Set(

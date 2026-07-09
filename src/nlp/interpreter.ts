@@ -31,6 +31,10 @@ function quoteIdent(name: string): string {
   return parts.map((p) => `"${p.replace(/"/g, '""')}"`).join('.');
 }
 
+function escapeSqlLiteral(value: string): string {
+  return value.replace(/'/g, "''");
+}
+
 /**
  * Pattern-based NLP interpreter that maps natural language to read-only SQL.
  * Uses schema context for table/column resolution.
@@ -76,7 +80,7 @@ ORDER BY table_schema, table_name`,
     return {
       sql: `SELECT column_name, data_type, is_nullable, column_default
 FROM information_schema.columns
-WHERE table_schema = '${schemaName}' AND table_name = '${name}'
+WHERE table_schema = '${escapeSqlLiteral(schemaName)}' AND table_name = '${escapeSqlLiteral(name)}'
 ORDER BY ordinal_position`,
       explanation: `Showing column definitions for table ${tableName}.`,
       confidence: 'high',
@@ -171,8 +175,8 @@ JOIN information_schema.key_column_usage kcu
 JOIN information_schema.constraint_column_usage ccu
   ON ccu.constraint_name = tc.constraint_name AND ccu.table_schema = tc.table_schema
 WHERE tc.constraint_type = 'FOREIGN KEY'
-  AND tc.table_schema = '${schemaName}'
-  AND tc.table_name = '${name}'`,
+  AND tc.table_schema = '${escapeSqlLiteral(schemaName)}'
+  AND tc.table_name = '${escapeSqlLiteral(name)}'`,
       explanation: `Showing foreign key relationships for ${tableName}.`,
       confidence: 'high',
     };
@@ -195,7 +199,7 @@ WHERE tc.constraint_type = 'FOREIGN KEY'
     return {
       sql: `SELECT indexname, indexdef
 FROM pg_indexes
-WHERE schemaname = '${schemaName}' AND tablename = '${name}'`,
+WHERE schemaname = '${escapeSqlLiteral(schemaName)}' AND tablename = '${escapeSqlLiteral(name)}'`,
       explanation: `Listing indexes on ${tableName}.`,
       confidence: 'high',
     };

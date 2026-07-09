@@ -1,5 +1,9 @@
 import { SchemaInfo, TableInfo } from './introspector';
 
+function escapeMarkdownCell(value: string): string {
+  return value.replace(/\|/g, '\\|');
+}
+
 function formatTable(table: TableInfo): string {
   const lines: string[] = [];
   const fullName = `${table.schema}.${table.name}`;
@@ -13,7 +17,7 @@ function formatTable(table: TableInfo): string {
     const pk = col.isPrimaryKey ? '✓' : '';
     const fk = col.isForeignKey ? `→ ${col.foreignKeyRef}` : '';
     const nullable = col.isNullable ? 'YES' : 'NO';
-    const defaultVal = col.defaultValue ?? '';
+    const defaultVal = escapeMarkdownCell(col.defaultValue ?? '');
     lines.push(
       `| \`${col.name}\` | ${col.dataType} | ${nullable} | ${pk} | ${fk} | ${defaultVal} |`
     );
@@ -82,11 +86,11 @@ export function schemaToAgentMarkdown(schema: SchemaInfo): string {
     lines.push(`    - name: ${fullName}`);
     lines.push('      columns:');
     for (const col of table.columns) {
-      const attrs: string[] = [`type=${col.dataType}`];
-      if (col.isPrimaryKey) attrs.push('pk');
-      if (col.isForeignKey) attrs.push(`fk=${col.foreignKeyRef}`);
-      if (!col.isNullable) attrs.push('not_null');
-      lines.push(`        - ${col.name}: { ${attrs.join(', ')} }`);
+      lines.push(`        - name: ${col.name}`);
+      lines.push(`          type: ${col.dataType}`);
+      if (col.isPrimaryKey) lines.push('          pk: true');
+      if (col.isForeignKey) lines.push(`          fk: ${col.foreignKeyRef}`);
+      if (!col.isNullable) lines.push('          not_null: true');
     }
   }
 
