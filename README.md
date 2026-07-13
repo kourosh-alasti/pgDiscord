@@ -2,6 +2,8 @@
 
 A Discord bot that provides a **safe, read-only access layer** to PostgreSQL databases — designed for AI agents and humans who need database visibility without modification rights.
 
+![pgDiscord help command showing available database commands and the read-only safety policy](docs/images/help.png)
+
 ## Features
 
 - **Read-only SQL execution** — `/query` runs SELECT, WITH, EXPLAIN, SHOW, and VALUES only
@@ -90,7 +92,19 @@ Run `/connect` **without** the url option to open a **private modal** — your c
 /connect url:...  → works but url is visible in channel (use for automation only)
 ```
 
+![Private confirmation after connecting pgDiscord to PostgreSQL](docs/images/connect.png)
+
 After connecting, use `/query`, `/ask`, `/schema`, and `/diagram` as normal. Sessions auto-disconnect after inactivity; use `/reconnect` or `/connect` again.
+
+Use `/status` at any time to check the current session without exposing its connection string:
+
+![Private pgDiscord database connection status](docs/images/status.png)
+
+### Running read-only SQL (`/query`)
+
+Use `/query` for precise SQL. Results are formatted as compact tables, with wide values shortened to fit within Discord's message limits.
+
+![A read-only SQL query displayed as a compact table in Discord](docs/images/query.png)
 
 ### Example NLP queries (`/ask`)
 
@@ -100,6 +114,20 @@ After connecting, use `/query`, `/ask`, `/schema`, and `/diagram` as normal. Ses
 - "show top 10 rows from products"
 - "foreign keys for users"
 - "indexes on orders"
+
+pgDiscord shows both the interpreted SQL and its result so you can verify how the question was translated:
+
+![A natural-language database question translated to SQL with its results](docs/images/nlp-esque.png)
+
+### Exploring relationships (`/diagram`)
+
+Use `/diagram format:mermaid` to generate an ER definition for a Mermaid renderer:
+
+![A Mermaid ER diagram definition generated from a PostgreSQL schema](docs/images/mermaid-diagram.png)
+
+Use `/diagram format:ascii` for a diagram that can be read directly in Discord:
+
+![An ASCII database schema diagram displayed directly in Discord](docs/images/ascii-diagram.png)
 
 ## Safety Policy
 
