@@ -1,7 +1,7 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
 import { ConnectionRegistry } from '../db/registry';
 import { QueryRejectedError } from '../safety/query-filter';
-import { formatQueryResult, truncateText } from '../utils/format';
+import { formatQueryResult } from '../utils/format';
 import { requireConnection } from '../utils/require-connection';
 
 export const queryCommand = {
@@ -29,11 +29,10 @@ export const queryCommand = {
       const start = Date.now();
       const result = await db.query(sql);
       const elapsed = Date.now() - start;
-      const formatted = formatQueryResult(result);
+      const prefix = `✅ Query executed in ${elapsed}ms\n`;
+      const formatted = formatQueryResult(result, 1900 - prefix.length);
 
-      await interaction.editReply(
-        truncateText(`✅ Query executed in ${elapsed}ms\n${formatted}`)
-      );
+      await interaction.editReply(`${prefix}${formatted}`);
     } catch (err) {
       if (err instanceof QueryRejectedError) {
         await interaction.editReply(

@@ -56,7 +56,6 @@ export const askCommand = {
       const start = Date.now();
       const result = await db.query(nlpResult.sql);
       const elapsed = Date.now() - start;
-      const formatted = formatQueryResult(result);
 
       const confidenceEmoji =
         nlpResult.confidence === 'high'
@@ -64,14 +63,13 @@ export const askCommand = {
           : nlpResult.confidence === 'medium'
             ? '🟡'
             : '🔴';
+      const prefix =
+        `${confidenceEmoji} **Interpreted:** ${nlpResult.explanation}\n` +
+        `\`\`\`sql\n${nlpResult.sql}\n\`\`\`\n` +
+        `✅ Executed in ${elapsed}ms\n`;
+      const formatted = formatQueryResult(result, 1900 - prefix.length);
 
-      await interaction.editReply(
-        truncateText(
-          `${confidenceEmoji} **Interpreted:** ${nlpResult.explanation}\n` +
-            `\`\`\`sql\n${nlpResult.sql}\n\`\`\`\n` +
-            `✅ Executed in ${elapsed}ms\n${formatted}`
-        )
-      );
+      await interaction.editReply(`${prefix}${formatted}`);
     } catch (err) {
       if (err instanceof QueryRejectedError) {
         await interaction.editReply(
