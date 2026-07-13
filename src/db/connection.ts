@@ -46,7 +46,9 @@ export class DatabaseManager {
       query_timeout: 30_000,
     });
 
-    this.pool.on("error", () => {
+    this.pool.on("error", (err) => {
+      console.error("Pool error:", err);
+      this.pool?.end().catch(() => {});
       this.handleDisconnect();
     });
 
