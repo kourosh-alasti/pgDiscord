@@ -1,6 +1,6 @@
-import { isIP } from 'net';
-import { lookup } from 'dns/promises';
-import { DatabaseManager } from './connection';
+import { isIP } from "net";
+import { lookup } from "dns/promises";
+import { DatabaseManager } from "./connection";
 
 export class ConnectionRegistry {
   private readonly sessions = new Map<string, DatabaseManager>();
@@ -45,9 +45,7 @@ export class ConnectionRegistry {
   }
 
   async disconnectAll(): Promise<void> {
-    const disconnects = Array.from(this.sessions.values()).map((m) =>
-      m.disconnect()
-    );
+    const disconnects = Array.from(this.sessions.values()).map((m) => m.disconnect());
     await Promise.all(disconnects);
     this.sessions.clear();
   }
@@ -60,61 +58,53 @@ export class ConnectionRegistry {
 export function validateConnectionString(url: string): void {
   const trimmed = url.trim();
   if (!trimmed) {
-    throw new Error('Connection string cannot be empty.');
+    throw new Error("Connection string cannot be empty.");
   }
   if (!/^postgres(?:ql)?:\/\//i.test(trimmed)) {
-    throw new Error(
-      'Invalid connection string. Must start with postgresql:// or postgres://'
-    );
+    throw new Error("Invalid connection string. Must start with postgresql:// or postgres://");
   }
 
   let parsed: URL;
   try {
     parsed = new URL(trimmed);
   } catch {
-    throw new Error('Invalid connection string URL format.');
+    throw new Error("Invalid connection string URL format.");
   }
 
   const hostname = parsed.hostname;
   if (!hostname) {
-    throw new Error('Connection string must include a hostname.');
+    throw new Error("Connection string must include a hostname.");
   }
 
   if (isBlockedHost(hostname)) {
-    throw new Error(
-      'Connection to private, loopback, or link-local hosts is not allowed.'
-    );
+    throw new Error("Connection to private, loopback, or link-local hosts is not allowed.");
   }
 }
 
 async function validateConnectionStringWithDNS(url: string): Promise<void> {
   const trimmed = url.trim();
   if (!trimmed) {
-    throw new Error('Connection string cannot be empty.');
+    throw new Error("Connection string cannot be empty.");
   }
   if (!/^postgres(?:ql)?:\/\//i.test(trimmed)) {
-    throw new Error(
-      'Invalid connection string. Must start with postgresql:// or postgres://'
-    );
+    throw new Error("Invalid connection string. Must start with postgresql:// or postgres://");
   }
 
   let parsed: URL;
   try {
     parsed = new URL(trimmed);
   } catch {
-    throw new Error('Invalid connection string URL format.');
+    throw new Error("Invalid connection string URL format.");
   }
 
   const hostname = parsed.hostname;
   if (!hostname) {
-    throw new Error('Connection string must include a hostname.');
+    throw new Error("Connection string must include a hostname.");
   }
 
   // Check literal hostname/IP first
   if (isBlockedHost(hostname)) {
-    throw new Error(
-      'Connection to private, loopback, or link-local hosts is not allowed.'
-    );
+    throw new Error("Connection to private, loopback, or link-local hosts is not allowed.");
   }
 
   // If hostname is already an IP, we're done
@@ -128,7 +118,7 @@ async function validateConnectionStringWithDNS(url: string): Promise<void> {
     addresses = await lookup(hostname, { all: true });
   } catch (err) {
     throw new Error(
-      `Failed to resolve hostname "${hostname}": ${err instanceof Error ? err.message : String(err)}`
+      `Failed to resolve hostname "${hostname}": ${err instanceof Error ? err.message : String(err)}`,
     );
   }
 
@@ -139,16 +129,16 @@ async function validateConnectionStringWithDNS(url: string): Promise<void> {
   for (const addr of addresses) {
     if (isBlockedHost(addr.address)) {
       throw new Error(
-        `Connection to private, loopback, or link-local hosts is not allowed. Hostname "${hostname}" resolves to blocked IP: ${addr.address}`
+        `Connection to private, loopback, or link-local hosts is not allowed. Hostname "${hostname}" resolves to blocked IP: ${addr.address}`,
       );
     }
   }
 }
 
 function isBlockedHost(hostname: string): boolean {
-  const host = hostname.toLowerCase().replace(/^\[|\]$/g, '');
+  const host = hostname.toLowerCase().replace(/^\[|\]$/g, "");
 
-  if (host === 'localhost' || host.endsWith('.localhost')) {
+  if (host === "localhost" || host.endsWith(".localhost")) {
     return true;
   }
 
@@ -158,9 +148,9 @@ function isBlockedHost(hostname: string): boolean {
   }
 
   if (ipVersion === 6) {
-    if (host === '::1') return true;
-    if (host.startsWith('fe80:')) return true;
-    if (host.startsWith('fc') || host.startsWith('fd')) return true;
+    if (host === "::1") return true;
+    if (host.startsWith("fe80:")) return true;
+    if (host.startsWith("fc") || host.startsWith("fd")) return true;
 
     // Check for IPv4-mapped IPv6 addresses (::ffff:x.x.x.x)
     const ipv4MappedMatch = host.match(/^::ffff:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/);
@@ -173,7 +163,7 @@ function isBlockedHost(hostname: string): boolean {
 }
 
 function isBlockedIPv4(ip: string): boolean {
-  const [a, b] = ip.split('.').map(Number);
+  const [a, b] = ip.split(".").map(Number);
   if (a === 127 || a === 0) return true;
   if (a === 10) return true;
   if (a === 172 && b >= 16 && b <= 31) return true;
@@ -185,10 +175,10 @@ function isBlockedIPv4(ip: string): boolean {
 export function maskConnectionString(url: string): string {
   try {
     const parsed = new URL(url);
-    const host = parsed.hostname || 'unknown';
-    const db = parsed.pathname?.replace(/^\//, '') || 'unknown';
+    const host = parsed.hostname || "unknown";
+    const db = parsed.pathname?.replace(/^\//, "") || "unknown";
     return `${host}/${db}`;
   } catch {
-    return '[hidden]';
+    return "[hidden]";
   }
 }

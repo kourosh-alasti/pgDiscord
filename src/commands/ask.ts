@@ -1,29 +1,29 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
-import { ConnectionRegistry } from '../db/registry';
-import { interpretNaturalLanguage } from '../nlp/interpreter';
-import { introspectSchema } from '../schema/introspector';
-import { QueryRejectedError } from '../safety/query-filter';
-import { formatQueryResult, truncateText } from '../utils/format';
-import { requireConnection } from '../utils/require-connection';
+import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
+import { ConnectionRegistry } from "../db/registry";
+import { interpretNaturalLanguage } from "../nlp/interpreter";
+import { introspectSchema } from "../schema/introspector";
+import { QueryRejectedError } from "../safety/query-filter";
+import { formatQueryResult, truncateText } from "../utils/format";
+import { requireConnection } from "../utils/require-connection";
 
 export const askCommand = {
   data: new SlashCommandBuilder()
-    .setName('ask')
-    .setDescription('Ask a question in natural language (converted to read-only SQL)')
+    .setName("ask")
+    .setDescription("Ask a question in natural language (converted to read-only SQL)")
     .addStringOption((opt) =>
       opt
-        .setName('question')
+        .setName("question")
         .setDescription(
-          'Natural language question, e.g. "show all tables" or "how many rows in users"'
+          'Natural language question, e.g. "show all tables" or "how many rows in users"',
         )
-        .setRequired(true)
+        .setRequired(true),
     ),
 
   async execute(
     interaction: ChatInputCommandInteraction,
-    registry: ConnectionRegistry
+    registry: ConnectionRegistry,
   ): Promise<void> {
-    const question = interaction.options.getString('question', true);
+    const question = interaction.options.getString("question", true);
     await interaction.deferReply();
 
     const db = await requireConnection(interaction, registry);
@@ -42,8 +42,8 @@ export const askCommand = {
               `• "how many rows in orders"\n` +
               `• "show top 10 rows from products"\n` +
               `• "foreign keys for users"\n` +
-              `• Or use \`/query\` with raw SQL`
-          )
+              `• Or use \`/query\` with raw SQL`,
+          ),
         );
         return;
       }
@@ -58,11 +58,7 @@ export const askCommand = {
       const elapsed = Date.now() - start;
 
       const confidenceEmoji =
-        nlpResult.confidence === 'high'
-          ? '🟢'
-          : nlpResult.confidence === 'medium'
-            ? '🟡'
-            : '🔴';
+        nlpResult.confidence === "high" ? "🟢" : nlpResult.confidence === "medium" ? "🟡" : "🔴";
       const prefix =
         `${confidenceEmoji} **Interpreted:** ${nlpResult.explanation}\n` +
         `\`\`\`sql\n${nlpResult.sql}\n\`\`\`\n` +
@@ -73,12 +69,12 @@ export const askCommand = {
     } catch (err) {
       if (err instanceof QueryRejectedError) {
         await interaction.editReply(
-          `🚫 **Query rejected** (${err.reason})\n${err.message}\n\n_The interpreted SQL was blocked by the safety filter._`
+          `🚫 **Query rejected** (${err.reason})\n${err.message}\n\n_The interpreted SQL was blocked by the safety filter._`,
         );
         return;
       }
       await interaction.editReply(
-        `❌ **Error:** ${err instanceof Error ? err.message : String(err)}`
+        `❌ **Error:** ${err instanceof Error ? err.message : String(err)}`,
       );
     }
   },

@@ -1,23 +1,22 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
-import { ConnectionRegistry } from '../db/registry';
-import { formatDuration } from '../utils/format';
-import { requireConnection } from '../utils/require-connection';
+import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
+import { ConnectionRegistry } from "../db/registry";
+import { formatDuration } from "../utils/format";
+import { requireConnection } from "../utils/require-connection";
 
 export const statusCommand = {
   data: new SlashCommandBuilder()
-    .setName('status')
-    .setDescription('View your database connection status'),
+    .setName("status")
+    .setDescription("View your database connection status"),
 
   async execute(
     interaction: ChatInputCommandInteraction,
-    registry: ConnectionRegistry
+    registry: ConnectionRegistry,
   ): Promise<void> {
     const db = registry.get(interaction.user.id);
 
     if (!db) {
       await interaction.reply({
-        content:
-          '❌ **Not connected.** Use `/connect` to link your PostgreSQL database.',
+        content: "❌ **Not connected.** Use `/connect` to link your PostgreSQL database.",
         flags: 64,
       });
       return;
@@ -26,11 +25,11 @@ export const statusCommand = {
     const status = db.getStatus();
 
     const lines = [
-      '**Your Database Connection Status**',
-      '',
-      `• **Connected:** ${status.connected ? '✅ Yes' : '❌ No'}`,
-      `• **Database:** ${status.databaseName ?? '_unknown_'}`,
-      `• **Timed out:** ${status.timedOut ? 'Yes (use /reconnect)' : 'No'}`,
+      "**Your Database Connection Status**",
+      "",
+      `• **Connected:** ${status.connected ? "✅ Yes" : "❌ No"}`,
+      `• **Database:** ${status.databaseName ?? "_unknown_"}`,
+      `• **Timed out:** ${status.timedOut ? "Yes (use /reconnect)" : "No"}`,
     ];
 
     if (status.lastActivityAt) {
@@ -39,24 +38,24 @@ export const statusCommand = {
         lines.push(`• **Idle for:** ${formatDuration(status.idleMs)}`);
       }
     } else {
-      lines.push('• **Last activity:** _none yet_');
+      lines.push("• **Last activity:** _none yet_");
     }
 
-    lines.push('');
-    lines.push('_Connection credentials are never displayed._');
+    lines.push("");
+    lines.push("_Connection credentials are never displayed._");
 
-    await interaction.reply({ content: lines.join('\n'), flags: 64 });
+    await interaction.reply({ content: lines.join("\n"), flags: 64 });
   },
 };
 
 export const reconnectCommand = {
   data: new SlashCommandBuilder()
-    .setName('reconnect')
-    .setDescription('Reconnect to your database after timeout or disconnect'),
+    .setName("reconnect")
+    .setDescription("Reconnect to your database after timeout or disconnect"),
 
   async execute(
     interaction: ChatInputCommandInteraction,
-    registry: ConnectionRegistry
+    registry: ConnectionRegistry,
   ): Promise<void> {
     await interaction.deferReply({ flags: 64 });
 
@@ -67,11 +66,11 @@ export const reconnectCommand = {
       await db.reconnect();
       const status = db.getStatus();
       await interaction.editReply(
-        `✅ Reconnected to database **${status.databaseName ?? 'unknown'}**.`
+        `✅ Reconnected to database **${status.databaseName ?? "unknown"}**.`,
       );
     } catch (err) {
       await interaction.editReply(
-        `❌ **Reconnect failed:** ${err instanceof Error ? err.message : String(err)}\n\nIf your session expired, use \`/connect\` again.`
+        `❌ **Reconnect failed:** ${err instanceof Error ? err.message : String(err)}\n\nIf your session expired, use \`/connect\` again.`,
       );
     }
   },
@@ -79,12 +78,12 @@ export const reconnectCommand = {
 
 export const helpCommand = {
   data: new SlashCommandBuilder()
-    .setName('help')
-    .setDescription('Show available commands and safety policies'),
+    .setName("help")
+    .setDescription("Show available commands and safety policies"),
 
   async execute(
     interaction: ChatInputCommandInteraction,
-    _registry: ConnectionRegistry
+    _registry: ConnectionRegistry,
   ): Promise<void> {
     await interaction.reply({
       content: truncateHelp(),

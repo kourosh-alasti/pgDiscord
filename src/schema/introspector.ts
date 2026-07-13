@@ -1,4 +1,4 @@
-import { PoolClient } from 'pg';
+import { PoolClient } from "pg";
 
 export interface ColumnInfo {
   name: string;
@@ -115,9 +115,7 @@ export async function introspectSchema(client: PoolClient): Promise<SchemaInfo> 
   `);
 
   const pkSet = new Set(
-    pkResult.rows.map(
-      (r) => `${r.table_schema}.${r.table_name}.${r.column_name}`
-    )
+    pkResult.rows.map((r) => `${r.table_schema}.${r.table_name}.${r.column_name}`),
   );
 
   const fkMap = new Map<string, string>();
@@ -142,7 +140,7 @@ export async function introspectSchema(client: PoolClient): Promise<SchemaInfo> 
     tableMap.get(key)!.columns.push({
       name: row.column_name,
       dataType: row.data_type,
-      isNullable: row.is_nullable === 'YES',
+      isNullable: row.is_nullable === "YES",
       defaultValue: row.column_default,
       isPrimaryKey: pkSet.has(colKey),
       isForeignKey: fkMap.has(colKey),
@@ -166,20 +164,17 @@ export async function introspectSchema(client: PoolClient): Promise<SchemaInfo> 
   };
 }
 
-export async function getTableNames(
-  client: PoolClient,
-  schema?: string
-): Promise<string[]> {
+export async function getTableNames(client: PoolClient, schema?: string): Promise<string[]> {
   const result = await client.query<{ full_name: string }>(
     `
     SELECT table_schema || '.' || table_name AS full_name
     FROM information_schema.tables
     WHERE table_schema NOT IN ('pg_catalog', 'information_schema')
       AND table_type = 'BASE TABLE'
-      ${schema ? 'AND table_schema = $1' : ''}
+      ${schema ? "AND table_schema = $1" : ""}
     ORDER BY table_schema, table_name
     `,
-    schema ? [schema] : []
+    schema ? [schema] : [],
   );
   return result.rows.map((r) => r.full_name);
 }
