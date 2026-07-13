@@ -1,6 +1,6 @@
 {
   "name": "pgdiscord",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Discord bot providing safe read-only PostgreSQL access for AI agents",
   "keywords": [
     "ai-agents",
