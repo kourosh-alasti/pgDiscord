@@ -1,5 +1,5 @@
-import { Pool, PoolClient, QueryResult } from 'pg';
-import { sanitizeOutput, validateReadOnlyQuery, QueryRejectedError } from '../safety/query-filter';
+import { Pool, PoolClient, QueryResult } from "pg";
+import { sanitizeOutput, validateReadOnlyQuery, QueryRejectedError } from "../safety/query-filter";
 
 export interface ConnectionConfig {
   connectionString: string;
@@ -46,13 +46,15 @@ export class DatabaseManager {
       query_timeout: 30_000,
     });
 
-    this.pool.on('error', () => {
+    this.pool.on("error", (err) => {
+      console.error("Pool error:", err);
+      this.pool?.end().catch(() => {});
       this.handleDisconnect();
     });
 
     const client = await this.pool.connect();
     try {
-      const result = await client.query('SELECT current_database() AS db');
+      const result = await client.query("SELECT current_database() AS db");
       this.databaseName = result.rows[0]?.db ?? null;
     } finally {
       client.release();
@@ -85,7 +87,7 @@ export class DatabaseManager {
 
   async query<T extends Record<string, unknown> = Record<string, unknown>>(
     sql: string,
-    params?: unknown[]
+    params?: unknown[],
   ): Promise<QueryResult<T>> {
     validateReadOnlyQuery(sql);
 
@@ -93,7 +95,7 @@ export class DatabaseManager {
     const client = await pool.connect();
 
     try {
-      await client.query('SET TRANSACTION READ ONLY');
+      await client.query("SET TRANSACTION READ ONLY");
       const result = await client.query<T>(sql, params);
       this.touch();
       return result;
@@ -103,7 +105,7 @@ export class DatabaseManager {
       }
       const message = sanitizeOutput(
         err instanceof Error ? err.message : String(err),
-        this.config.connectionString
+        this.config.connectionString,
       );
       throw new Error(message);
     } finally {
@@ -115,7 +117,7 @@ export class DatabaseManager {
     const pool = await this.ensureConnected();
     const client = await pool.connect();
     try {
-      await client.query('SET TRANSACTION READ ONLY');
+      await client.query("SET TRANSACTION READ ONLY");
       const result = await fn(client);
       this.touch();
       return result;

@@ -71,17 +71,17 @@ npm run dev
 
 ## Commands
 
-| Command | Description |
-|---------|-------------|
-| `/connect [url]` | Connect to PostgreSQL (private modal if url omitted) |
-| `/disconnect` | End session and clear credentials from memory |
-| `/query sql:<SQL>` | Execute read-only SQL |
-| `/ask question:<text>` | Natural language → SQL |
-| `/schema [table] [format]` | Schema as markdown or agent YAML |
-| `/diagram [table] [format]` | Mermaid ER or ASCII diagram |
-| `/status` | Your connection status (ephemeral, no credentials) |
-| `/reconnect` | Reconnect after timeout |
-| `/help` | Commands and safety policy |
+| Command                     | Description                                          |
+| --------------------------- | ---------------------------------------------------- |
+| `/connect [url]`            | Connect to PostgreSQL (private modal if url omitted) |
+| `/disconnect`               | End session and clear credentials from memory        |
+| `/query sql:<SQL>`          | Execute read-only SQL                                |
+| `/ask question:<text>`      | Natural language → SQL                               |
+| `/schema [table] [format]`  | Schema as markdown or agent YAML                     |
+| `/diagram [table] [format]` | Mermaid ER or ASCII diagram                          |
+| `/status`                   | Your connection status (ephemeral, no credentials)   |
+| `/reconnect`                | Reconnect after timeout                              |
+| `/help`                     | Commands and safety policy                           |
 
 ### Connecting to your database
 
@@ -133,14 +133,14 @@ Use `/diagram format:ascii` for a diagram that can be read directly in Discord:
 
 All queries pass through a **SQL AST parser** (`pgsql-ast-parser`) before execution. The following are **hard-rejected**:
 
-| Blocked | Examples |
-|---------|----------|
-| DML writes | `INSERT`, `UPDATE`, `DELETE` |
-| DDL | `CREATE`, `DROP`, `ALTER`, `TRUNCATE` |
-| Privileges | `GRANT`, `REVOKE` |
-| Maintenance | `VACUUM`, `REINDEX`, `COPY` |
-| Transactions | `BEGIN`, `COMMIT`, `ROLLBACK` |
-| Row locks | `SELECT … FOR UPDATE` |
+| Blocked      | Examples                                  |
+| ------------ | ----------------------------------------- |
+| DML writes   | `INSERT`, `UPDATE`, `DELETE`              |
+| DDL          | `CREATE`, `DROP`, `ALTER`, `TRUNCATE`     |
+| Privileges   | `GRANT`, `REVOKE`                         |
+| Maintenance  | `VACUUM`, `REINDEX`, `COPY`               |
+| Transactions | `BEGIN`, `COMMIT`, `ROLLBACK`             |
+| Row locks    | `SELECT … FOR UPDATE`                     |
 | Side effects | `SELECT INTO`, dangerous `pg_*` functions |
 
 Additionally, database connections use `SET TRANSACTION READ ONLY` for defense in depth.
@@ -172,12 +172,12 @@ Use these endpoints for structured database access:
 
 ## Environment Variables
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `DISCORD_TOKEN` | Yes | — | Discord bot token |
-| `DATABASE_URL` | No | — | Optional default DB for single-tenant mode |
-| `INACTIVITY_TIMEOUT_MINUTES` | No | `30` | Idle disconnect timeout per user session |
-| `DISCORD_GUILD_ID` | No | — | Guild ID for faster dev command registration |
+| Variable                     | Required | Default | Description                                  |
+| ---------------------------- | -------- | ------- | -------------------------------------------- |
+| `DISCORD_TOKEN`              | Yes      | —       | Discord bot token                            |
+| `DATABASE_URL`               | No       | —       | Optional default DB for single-tenant mode   |
+| `INACTIVITY_TIMEOUT_MINUTES` | No       | `30`    | Idle disconnect timeout per user session     |
+| `DISCORD_GUILD_ID`           | No       | —       | Guild ID for faster dev command registration |
 
 ## License
 
