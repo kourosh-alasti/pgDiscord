@@ -2,24 +2,25 @@
   "name": "pgdiscord",
   "version": "0.1.1",
   "description": "Discord bot providing safe read-only PostgreSQL access for AI agents",
-  "main": "dist/index.js",
+  "keywords": [
+    "ai-agents",
+    "database",
+    "discord",
+    "postgresql",
+    "read-only"
+  ],
+  "license": "MIT",
+  "main": "dist/index.cjs",
   "scripts": {
-    "build": "tsc",
-    "start": "node dist/index.js",
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit",
+    "lint": "oxlint src scripts",
+    "format": "oxfmt . --write",
+    "format:check": "oxfmt . --check",
+    "start": "node dist/index.cjs",
     "dev": "tsx src/index.ts",
     "register-commands": "tsx src/register-commands.ts",
     "test": "tsx scripts/test-query-filter.ts"
-  },
-  "keywords": [
-    "discord",
-    "postgresql",
-    "database",
-    "read-only",
-    "ai-agents"
-  ],
-  "license": "MIT",
-  "engines": {
-    "node": ">=18"
   },
   "dependencies": {
     "discord.js": "^14.16.3",
@@ -30,8 +31,14 @@
   "devDependencies": {
     "@types/node": "^22.10.2",
     "@types/pg": "^8.11.10",
+    "oxfmt": "^0.58.0",
+    "oxlint": "^1.73.0",
+    "tsdown": "^0.22.7",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=18"
   },
   "allowScripts": {
     "esbuild@0.28.1": true,
